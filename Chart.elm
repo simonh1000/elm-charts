@@ -1,18 +1,10 @@
-{-
-containerStyles
-    titleStyle
-    chartCtnrStyles
-        elemStyles
-    labelCtnrStyles
-        labelStyles
--}
-
 module Chart (chart, chartV) where
 
 import Html exposing (..)
 import Html.Attributes exposing (class, id, style)
 
 import List exposing (..)
+import Dict exposing (Dict, update, get)
 
 -- API
 
@@ -22,7 +14,11 @@ chart ds ls title =
         |> chartTitle title
         |> normalise
         |> addValueToLabel
-        |> elemStyles [("background-color","steelblue")]
+        |> updateStyles "elemStyles"
+            [ ("font", "10px sans-serif")
+            , ("text-align", "right")
+            , ("color", "white")
+            ]
         |> toHtml
 
 chartV : List Float -> List String -> String -> Html
@@ -31,28 +27,25 @@ chartV ds ls title =
         |> chartTitle title
         |> normalise
         -- |> addValueToLabel
-        |> containerStyles
+        |> updateStyles "chartCtnrStyles"
             [ ("display", "flex")
-            , ("flex-direction", "column")
-            ]
-        |> chartCtnrStyles
-            [ ("display", "flex")
-            , ("height", "300px")
             , ("align-items", "flex-end")
             , ("justify-content", "center")
+            , ("height", "300px")
             ]
-        |> elemStyles
-            [ ("background-color","red")
-            , ("width", "30px")
+        |> updateStyles "elemStyles"
+            [ ("width", "30px")
             ]
-        |> labelCtnrStyles
+        |> updateStyles "labelCtnrStyles"
             [ ("display", "flex")
             , ("justify-content", "center")
-            , ("height", "50px")
+            , ("height", "70px")
             ]
-        |> labelStyles
-            [ ("width", "80px")
+        |> updateStyles "labelStyles"
+            [ ("width", "100px")
             , ("text-align", "right")
+            , ("overflow", "hidden")
+            , ("text-overflow", "ellipsis")
             ]
         |> toHtml
 
@@ -80,11 +73,12 @@ type alias Model =
     { chartType : ChartType
     , items : Items
     , title : String
-    , containerStyles : List Style
-    , chartCtnrStyles : List Style
-    , elemStyles : List Style
-    , labelCtnrStyles : List Style
-    , labelStyles : List Style
+    , styles: Dict String (List Style)
+    -- , containerStyles : List Style
+    -- , chartCtnrStyles : List Style
+    -- , elemStyles : List Style
+    -- , labelCtnrStyles : List Style
+    -- , labelStyles : List Style
     }
 
 chartInit : List Float -> List String -> ChartType -> Model
@@ -92,24 +86,31 @@ chartInit vs ls typ =
     { chartType = typ
     , items = initItems vs ls
     , title = ""
-    , containerStyles =
-        [ ( "background-color", "#eee" )
-        , ( "padding", "15px" )
-        , ( "border", "2px solid #aaa" )
-        ]
-    , chartCtnrStyles =
-        [ ( "background-color", "#fff" )
-        , ( "padding", "20px 10px" )
-        ]
-    , elemStyles =
-        [ ("font", "10px sans-serif")
-        , ("text-align", "right")
-        , ("padding", "3px")
-        , ("margin", "1px")
-        , ("color", "white")
-        ]
-    , labelCtnrStyles = []
-    , labelStyles = []
+    , styles =
+        Dict.fromList
+            [ ( "containerStyles"
+              , [ ( "background-color", "#eee" )
+                , ( "padding", "15px" )
+                , ( "border", "2px solid #aaa" )
+                , ( "display", "flex" )
+                , ( "flex-direction", "column" )
+                ]
+              )
+            , ( "chartCtnrStyles"
+              , [ ( "background-color", "#fff" )
+                , ( "padding", "20px 10px" )
+                ]
+              )
+            , ( "elemStyles"
+              , [ ("background-color","steelblue")
+                , ("padding", "3px")
+                , ("margin", "1px")
+                ]
+              )
+            , ( "labelCtnrStyles", [] )
+            , ( "labelStyles", [] )
+            , ( "titleStyle", [("text-align", "center")] )
+            ]
     }
 
 -- UPDATE
@@ -140,25 +141,11 @@ changeStyles : Style -> List Style -> List Style
 changeStyles (attr, val) styles =
     (attr, val) :: (filter (\(t,_) -> t /= attr) styles)
 
-containerStyles : List Style -> Model -> Model
-containerStyles lst model =
-    { model | containerStyles <- foldl changeStyles model.containerStyles lst }
-
-chartCtnrStyles : List Style -> Model -> Model
-chartCtnrStyles lst model =
-    { model | chartCtnrStyles <- foldl changeStyles model.chartCtnrStyles lst }
-
-elemStyles : List Style -> Model -> Model
-elemStyles lst model =
-    { model | elemStyles <- foldl changeStyles model.elemStyles lst }
-
-labelCtnrStyles : List Style -> Model -> Model
-labelCtnrStyles lst model =
-    { model | labelCtnrStyles <- foldl changeStyles model.labelCtnrStyles lst }
-
-labelStyles : List Style -> Model -> Model
-labelStyles lst model =
-    { model | labelStyles <- foldl changeStyles model.labelStyles lst }
+updateStyles : String -> List Style -> Model -> Model
+updateStyles selector lst model =
+    { model | styles <-
+        -- update selector (Maybe.map <| \curr -> foldl changeStyles curr lst) model.styles }
+        update selector (Maybe.map <| flip (foldl changeStyles) lst) model.styles }
 
 -- VIEW
 
@@ -171,32 +158,50 @@ toHtml model =
 
 viewBarHorizontal : Model -> Html
 viewBarHorizontal model =
-    div [ style model.containerStyles ]
-        [ h3 [ titleStyle ] [ text model.title ]
-        , div [ style model.chartCtnrStyles ] <|
+    let get' sel = Maybe.withDefault [] (get sel model.styles)
+    in
+    div [ style <| get' "containerStyles" ]
+        [ h3 [ style <| get' "titleStyle" ] [ text model.title ]
+        , div [ style <| get' "chartCtnrStyles" ] <|
             map
-                (\{normValue, label} -> div [ style <| ("width", toString normValue ++ "%") :: model.elemStyles] [ text label ] )
+                (\{normValue, label} -> div [ style <| ("width", toString normValue ++ "%") :: get' "elemStyles" ] [ text label ] )
                 model.items
         ]
 
 viewBarVertical : Model -> Html
 viewBarVertical model =
-    div [ style model.containerStyles ]
-        [ h3 [ titleStyle ] [ text model.title ]
-        , div [ style model.chartCtnrStyles ] <|
+    let get' sel = Maybe.withDefault [] (get sel model.styles)
+    in
+    div [ style <| get' "containerStyles" ]
+        [ h3 [ style <| get' "titleStyle" ] [ text model.title ]
+        , div [ style <| get' "chartCtnrStyles" ] <|
             map
-                (\{normValue} -> div [ style <| ("height", toString normValue ++ "%") :: model.elemStyles] [  ] )
+                (\{normValue} -> div [ style <| ("height", toString normValue ++ "%") :: get' "elemStyles" ] [  ] )
                 model.items
-        , div [ style model.labelCtnrStyles ] <|
+        , div [ style <| get' "labelCtnrStyles" ] <|
             indexedMap
                 ( \idx item ->
-                    div [ style <| (labelTransform idx) :: model.labelStyles ] [text (.label item)] ) model.items
+                    div
+                        [ style <| (labelTransform (length model.items) idx) :: get' "labelStyles" ]
+                        [text (.label item)]
+                ) model.items
         ]
 
+labelTransform : Int -> Int -> Style
+labelTransform lenData idx =
+    let
+        labelWidth = 60
+        offset =
+            case lenData % 2 == 0 of
+                True ->  (lenData // 2 - idx - 1) * labelWidth + 20        -- 6 elements, 2&3 are the middle
+                False -> (lenData // 2 - idx) * labelWidth - (labelWidth // 2)      -- 5 elements, 2 is the middle
+    in ("transform", "translateX("++(toString offset)++"px) translateY(30px) rotate(-45deg)")
 
-labelTransform : Int -> Style
-labelTransform idx =
-    let offset = toString <| (2 - idx) * 40 - 25
-    in ("transform", "translateX("++offset++"px) translateY(30px) rotate(-45deg)")
-
-titleStyle = style [("text-align", "center")]
+{-
+containerStyles
+    titleStyle
+    chartCtnrStyles
+        elemStyles
+    labelCtnrStyles
+        labelStyles
+-}
