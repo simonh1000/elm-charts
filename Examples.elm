@@ -1,14 +1,13 @@
-module Main (main) where
+module Examples where
 
 import StartApp.Simple exposing (start)
 
-import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Task
+import Html.Attributes exposing (style)
 
 import Chart exposing (..)
 --
-labels = ["Alpha", "Beta", "GammaGammaGamma", "Delta", "Epsilon", "Omega"]
+labels = ["Alpha", "Beta", "Gamma Gamma Gamma", "Delta", "Epsilon", "Omega"]
 values = [5, 9, 5, 2, 6, 10]
 
 type alias Model =
@@ -27,7 +26,13 @@ update action model = model
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-    pie model.values model.labels "This is the title"
+    div [ style []
+            -- [ ("height", "300px")         ]
+        ]
+        [ hBar model.values model.labels "Example horizontal bar chart"
+        , vBar model.values model.labels "Example vertical bar chart"
+        , pie model.values model.labels "Example pie chart"
+        ]
 
 main =
   start
