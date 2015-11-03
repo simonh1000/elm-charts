@@ -6,7 +6,7 @@ import Html exposing (..)
 import Html.Attributes exposing (style)
 
 import Chart exposing (..)
---
+
 labels = ["Alpha", "Beta", "Gamma Gamma Gamma", "Delta", "Epsilon", "Omega"]
 values = [5, 9, 5, 2, 6, 10]
 
@@ -14,6 +14,7 @@ type alias Model =
     { labels : List String
     , values : List Float
     }
+
 init =
     { labels = List.take 5 labels
     , values = List.take 5 values

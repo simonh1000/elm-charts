@@ -1,5 +1,7 @@
 module Chart (ChartType, hBar, vBar, pie, chartInit, title, colours, addValueToLabel, updateStyles) where
-{-| This library supports three basic chart types. The horizontal bar chart is built with simple div elements(based on an ideas from the D3 blog); the vertical one uses a flexbox layout and some CSS transforms, while the Pie chart is based on [this post](http://www.smashingmagazine.com/2015/07/designing-simple-pie-charts-with-css/).
+{-| This library supports three basic chart types. The horizontal bar chart is built with simple div elements (based on an ideas from [D3]()); the vertical one uses a flexbox layout and some CSS transforms, while the Pie chart is based on [this post](http://www.smashingmagazine.com/2015/07/designing-simple-pie-charts-with-css/).
+
+This module comprises tools to create and modify a model of the data, labels and styling, and then the function `toHtml` renders the model using one of the provided views. Three convenience functions are provided to accelerate modeling, but the defaults can be overriden.
 
 # Definition
 @docs ChartType
@@ -22,7 +24,7 @@ import Svg exposing (svg, circle)
 import Svg.Attributes exposing (viewBox, r, cx, cy, width, height, stroke, strokeDashoffset, strokeDasharray, preserveAspectRatio)
 
 -- MODEL
-{-|
+{-| There are three basic chart types, which determine how the model is rendered.
 -}
 type ChartType =
       BarHorizontal
@@ -31,7 +33,7 @@ type ChartType =
 
 type alias Item =
     { value : Float
-    , normValue : Float
+    , normValue: Float
     , label : String
     }
 initItem v l =
@@ -54,11 +56,12 @@ type alias Model =
     }
 
 -- API
-{-|
+{-| The horizontal bar chart results in a set of bars, one above the other, of lengths in proportion to the value. A label with the data value is printed in each bar.
 
     hBar vals labels "My Chart"
         |> toHtml
 -}
+
 hBar : List Float -> List String -> String -> Html
 hBar ds ls cTitle =
     chartInit ds ls BarHorizontal
@@ -69,17 +72,21 @@ hBar ds ls cTitle =
             [ ( "display", "block" )
             ]
         |> updateStyles "chart-elements"
-            [ ( "font", "10px sans-serif" )
+            [ ( "background-color","steelblue" )
+            , ( "padding", "3px" )
+            , ( "margin", "1px" )
+            , ( "font", "10px sans-serif" )
             , ( "text-align", "right" )
             , ( "color", "white" )
             ]
         |> toHtml
 
-{-|
+{-| The vertical bar chart results in a set of bars of lengths in proportion to the value. A label is printed below each bar.
 
     vBar vals labels "My Chart"
         |> toHtml
 -}
+
 vBar : List Float -> List String -> String -> Html
 vBar ds ls cTitle =
     chartInit ds ls BarVertical
@@ -95,7 +102,10 @@ vBar ds ls cTitle =
             , ( "height", "300px" )
             ]
         |> updateStyles "chart-elements"
-            [ ( "width", "30px" )
+            [ ( "background-color","steelblue" )
+            , ( "padding", "3px" )
+            , ( "margin", "1px" )
+            , ( "width", "30px" )
             ]
         |> updateStyles "legend"
             [ ( "align-self", "center" )
@@ -110,7 +120,7 @@ vBar ds ls cTitle =
             ]
         |> toHtml
 
-{-|
+{-| The pie chart results in a circle cut into coloured segments of size proportional to the data value.
 
     pie vals labels "My Chart"
         |> toHtml
@@ -150,7 +160,7 @@ chartInit vs ls typ =
     { chartType = typ
     , items = initItems vs ls
     , title = ""
-    , colours = []
+    , colours = ["#BF69B1", "#96A65B", "#D9A679", "#593F27", "#A63D33"]
     , styles =
         Dict.fromList
             [ ( "title", [( "text-align", "center" )] )
@@ -171,12 +181,7 @@ chartInit vs ls typ =
             , ( "chart"
               , [ ( "display", "flex" ) ]
               )
-            , ( "chart-elements"
-              , [ ( "background-color","steelblue" )
-                , ( "padding", "3px" )
-                , ( "margin", "1px" )
-                ]
-              )
+            , ( "chart-elements", [] )
             , ( "legend"
               , [ ( "display", "flex" ) ] )
             , ( "legend-labels", [] )
@@ -184,19 +189,39 @@ chartInit vs ls typ =
     }
 
 -- UPDATE
-{-| title adds a title to the model
+{-| title adds a title to the model.
+
+    -- e.g. build a chart from scratch
+    chartInit vs ls BarHorizontal
+        |> title "This will be the title"
+        |> toHtml
 -}
+
 title : String -> Model -> Model
 title newTitle model =
      { model | title <- newTitle }
 
-{-| colours adds a list of colours ...
+{-| colours replaces the default colours. Bar charts use just one colour, which will be the head of the list provided.
+
+    vChart vs ls
+        |> colours ["steelblue", "#96A65B", "#D9A679", "#593F27", "#A63D33"]    -- pie chart
+        |> toHtml
 -}
 colours : List String -> Model -> Model
 colours newColours model =
-     { model | colours <- newColours }
+    case newColours of
+        [] -> model
+        (c :: cs) ->
+            case model.chartType of
+                Pie -> { model | colours <- (c :: cs) }
+                otherwise ->
+                    updateStyles "chart" [ ( "background-color", c ) ] model
 
-{-| adds the value of the item to the label
+{-| addValueToLabel adds the data value of each item to the data label. This is applied by default in hBar.
+
+    vBar vs ls "Title"
+        |> addValueToLabel
+        |> toHtml
 -}
 addValueToLabel : Model -> Model
 addValueToLabel model =
@@ -229,17 +254,21 @@ changeStyles : Style -> List Style -> List Style
 changeStyles (attr, val) styles =
     (attr, val) :: (filter (\(t,_) -> t /= attr) styles)
 
-{-| Add custom styling to chart. updateStyles takes a list of styles and adds / replaces them to the existing base styles.
-    container
-        title
-        chart-container
-            {chart}
-                chart-elements
-            label/legend
-                legend-labels
+{-| updateStyles replaces styles for a part of the chart. A chart has the following div structure
 
-    updateStyles [()]
+    .container
+        .title
+        .chart-container
+            .chart      (container for the bars or pie segments)
+                .chart-elements
+            .legend     (also for the label container in a vertical bar chart)
+                .legend-labels
+
+    vChart vs ls "Title"
+        |> updateStyles "chart" [ ( "color", "black" ) ]
+        |> toHtml
 -}
+
 updateStyles : String -> List Style -> Model -> Model
 updateStyles selector lst model =
     { model | styles <-
@@ -249,8 +278,12 @@ updateStyles selector lst model =
 
 -- VIEW
 
-{-| Called last, this causes the chart data to be rendered.
+{-| toHtml is called last, and causes the chart data to be rendered to html.
+
+    hBar vs ls "Title"
+        |> toHtml
 -}
+
 toHtml : Model -> Html
 toHtml model =
     let get' sel = Maybe.withDefault [] (get sel model.styles)
@@ -269,14 +302,22 @@ viewBarHorizontal : Model -> List Html
 viewBarHorizontal model =
     let
         get' sel = Maybe.withDefault [] (get sel model.styles)
+        colour = Maybe.withDefault "steelblue" (List.head model.colours)
         elements =
             map
                 (\{normValue, label} ->
-                    div [ style <| ( "width", toString normValue ++ "%" ) :: get' "chart-elements" ] [ text label ]
+                    div [ style <|
+                            [ ( "width", toString normValue ++ "%" )
+                            , ( "color", colour )
+                            ] ++ get' "chart-elements"
+                        ] [ text label ]
                 )
                 model.items
     in
-    [ div [ style <| get' "chart-container" ] <| elements ]
+    [ div
+        [ style <| get' "chart-container" ]
+        elements
+    ]
 
 -- V E R T I C A L
 viewBarVertical : Model -> List Html
@@ -315,7 +356,6 @@ viewBarVertical model =
 viewPie : Model -> List Html
 viewPie model =
     let
-        colours = ["#BF69B1", "#96A65B", "#D9A679", "#593F27", "#A63D33"]
         elem off ang col =
             circle
                 [ r "16"
@@ -329,11 +369,11 @@ viewPie model =
         go =
             \{normValue} (accOff, (c::cs), accElems) ->
                 ( accOff - round normValue
-                , if List.isEmpty cs then colours else cs
+                , if List.isEmpty cs then model.colours else cs
                 , elem accOff (round normValue) c :: accElems
                 )
 
-        (_, _, elems) = foldl go (0, colours, []) model.items
+        (_, _, elems) = foldl go (0, model.colours, []) model.items
 
         legend items =
             List.map2
@@ -351,7 +391,7 @@ viewPie model =
                          , Html.text label
                          ]
                 )
-                items colours
+                items model.colours
 
         get' sel = Maybe.withDefault [] (get sel model.styles)
     in
