@@ -1,17 +1,16 @@
-module Chart (ChartType, hBar, vBar, pie, chartInit, title, colours, addValueToLabel, updateStyles) where
+module Chart (hBar, vBar, pie, title, colours, colors, addValueToLabel, updateStyles, toHtml) where
 {-| This library supports three basic chart types. The horizontal bar chart is built with simple div elements (based on an ideas from [D3]()); the vertical one uses a flexbox layout and some CSS transforms, while the Pie chart is based on [this post](http://www.smashingmagazine.com/2015/07/designing-simple-pie-charts-with-css/).
 
 This module comprises tools to create and modify a model of the data, labels and styling, and then the function `toHtml` renders the model using one of the provided views. Three convenience functions are provided to accelerate modeling, but the defaults can be overriden.
 
-# Definition
-@docs ChartType
-
-# Prebuilt charts
+# Basic models
 @docs hBar, vBar, pie
 
 # Customisers
-@docs chartInit, title, colours, addValueToLabel, updateStyles
+@docs title, colours, colors, addValueToLabel, updateStyles
 
+# Rendering
+@docs toHtml
 -}
 
 import Html exposing (..)
@@ -24,8 +23,7 @@ import Svg exposing (svg, circle)
 import Svg.Attributes exposing (viewBox, r, cx, cy, width, height, stroke, strokeDashoffset, strokeDasharray, preserveAspectRatio)
 
 -- MODEL
-{-| There are three basic chart types, which determine how the model is rendered.
--}
+
 type ChartType =
       BarHorizontal
     | BarVertical
@@ -56,16 +54,17 @@ type alias Model =
     }
 
 -- API
+
 {-| The horizontal bar chart results in a set of bars, one above the other, of lengths in proportion to the value. A label with the data value is printed in each bar.
 
-    hBar vals labels "My Chart"
+    hBar vals labels
+        |> title "My Chart
         |> toHtml
 -}
-
-hBar : List Float -> List String -> String -> Html
-hBar ds ls cTitle =
+hBar : List Float -> List String -> Model
+hBar ds ls =
     chartInit ds ls BarHorizontal
-        |> title cTitle
+        -- |> title cTitle
         |> normalise
         |> addValueToLabel
         |> updateStyles "chart-container"
@@ -79,18 +78,17 @@ hBar ds ls cTitle =
             , ( "text-align", "right" )
             , ( "color", "white" )
             ]
-        |> toHtml
 
 {-| The vertical bar chart results in a set of bars of lengths in proportion to the value. A label is printed below each bar.
 
-    vBar vals labels "My Chart"
+    vBar vals labels
+        |> title "My Chart"
         |> toHtml
 -}
-
-vBar : List Float -> List String -> String -> Html
-vBar ds ls cTitle =
+vBar : List Float -> List String -> Model
+vBar ds ls =
     chartInit ds ls BarVertical
-        |> title cTitle
+        -- |> title cTitle
         |> normalise
         |> updateStyles "chart-container"
             [ ( "flex-direction", "column" )
@@ -118,17 +116,16 @@ vBar ds ls cTitle =
             , ( "white-space", "nowrap" )
             , ( "text-overflow", "ellipsis" )
             ]
-        |> toHtml
 
 {-| The pie chart results in a circle cut into coloured segments of size proportional to the data value.
 
-    pie vals labels "My Chart"
+    pie vals labels
         |> toHtml
 -}
-pie : List Float -> List String -> String -> Html
-pie ds ls cTitle =
+pie : List Float -> List String -> Model
+pie ds ls =
     chartInit ds ls Pie
-        |> title cTitle
+        -- |> title cTitle
         |> toPercent
         |> updateStyles "chart-container"
             [ ( "justify-content", "center" )
@@ -151,7 +148,6 @@ pie ds ls cTitle =
         |> updateStyles "legend-labels"
             [ ( "white-space", "nowrap" )
             ]
-        |> toHtml
 
 {-| chartInit creates the basic data model that can be fine-tuned by subsequent function applications. It takes a list of values, labels and the chart type. This must be called first.
 -}
@@ -216,6 +212,11 @@ colours newColours model =
                 Pie -> { model | colours <- (c :: cs) }
                 otherwise ->
                     updateStyles "chart" [ ( "background-color", c ) ] model
+
+{-| colors supports alternative spelling of colours
+-}
+colors : List String -> Model -> Model
+colors = colours
 
 {-| addValueToLabel adds the data value of each item to the data label. This is applied by default in hBar.
 

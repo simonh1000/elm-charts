@@ -1,3 +1,5 @@
 # Elm Chart library
 
-A library for creating simple horizontal and vertical bar charts, and for pie charts.
+An Elm library for creating simple horizontal and vertical bar charts, and for pie charts.
+
+![Pie chart](pie.png)

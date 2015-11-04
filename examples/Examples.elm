@@ -30,9 +30,15 @@ view address model =
     div [ style []
             -- [ ("height", "300px")         ]
         ]
-        [ hBar model.values model.labels "Example horizontal bar chart"
-        , vBar model.values model.labels "Example vertical bar chart"
-        , pie model.values model.labels "Example pie chart"
+        [ hBar model.values model.labels
+            |> title "Example horizontal bar chart"
+            |> toHtml
+        , vBar model.values model.labels
+            |> title "Example vertical bar chart"
+            |> toHtml
+        , pie model.values model.labels
+            |> title "Example pie chart"
+            |> toHtml
         ]
 
 main =
