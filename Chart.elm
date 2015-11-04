@@ -1,7 +1,5 @@
 module Chart (hBar, vBar, pie, title, colours, colors, addValueToLabel, updateStyles, toHtml) where
-{-| This library supports three basic chart types. The horizontal bar chart is built with simple div elements (based on an ideas from [D3]()); the vertical one uses a flexbox layout and some CSS transforms, while the Pie chart is based on [this post](http://www.smashingmagazine.com/2015/07/designing-simple-pie-charts-with-css/).
-
-This module comprises tools to create and modify a model of the data, labels and styling, and then the function `toHtml` renders the model using one of the provided views. Three convenience functions are provided to accelerate modeling, but the defaults can be overriden.
+{-| This module comprises tools to create and modify a model of the data, labels and styling, and then the function `toHtml` renders the model using one of the provided views.
 
 # Chart constructors
 @docs hBar, vBar, pie
@@ -58,7 +56,7 @@ type alias Model =
 {-| The horizontal bar chart results in a set of bars, one above the other, of lengths in proportion to the value. A label with the data value is printed in each bar.
 
     hBar vals labels
-        |> title "My Chart
+        |> title "My Chart"
         |> toHtml
 -}
 hBar : List Float -> List String -> Model
@@ -69,14 +67,18 @@ hBar ds ls =
         |> addValueToLabel
         |> updateStyles "chart-container"
             [ ( "display", "block" )
+            , ( "font", "10px sans-serif" )
+            , ( "color", "white" )
             ]
         |> updateStyles "chart-elements"
             [ ( "background-color","steelblue" )
             , ( "padding", "3px" )
             , ( "margin", "1px" )
-            , ( "font", "10px sans-serif" )
             , ( "text-align", "right" )
-            , ( "color", "white" )
+            ]
+        |> updateStyles "legend-labels"
+            [ ( "display", "block" )
+            -- , ( "max-width", "100%" )
             ]
 
 {-| The vertical bar chart results in a set of bars of lengths in proportion to the value. A label is printed below each bar.
@@ -143,10 +145,12 @@ pie ds ls =
         |> updateStyles "legend"
             [ ( "flex-direction", "column" )
             , ( "justify-content", "center" )
-            , ( "padding-left", "10px" )
+            , ( "padding-left", "15px" )
             ]
         |> updateStyles "legend-labels"
             [ ( "white-space", "nowrap" )
+            , ( "overflow", "hidden" )
+            , ( "text-overflow", "ellipsis" )
             ]
 
 {-| chartInit creates the basic data model that can be fine-tuned by subsequent function applications. It takes a list of values, labels and the chart type. This must be called first.
@@ -171,16 +175,21 @@ chartInit vs ls typ =
             , ( "chart-container"
               , [ ( "display", "flex" )
                 , ( "background-color", "#fff" )
-                , ( "padding", "20px 10px" )
+                , ( "padding", "15px" )
                 ]
               )
             , ( "chart"
-              , [ ( "display", "flex" ) ]
+              , [ ( "display", "flex" ) ]      -- not needed for Pie
               )
             , ( "chart-elements", [] )
             , ( "legend"
               , [ ( "display", "flex" ) ] )
-            , ( "legend-labels", [] )
+            , ( "legend-labels",
+                [ ( "white-space", "nowrap" )
+                , ( "overflow", "hidden" )
+                , ( "text-overflow", "ellipsis" )
+                ]
+              )
             ]
     }
 
@@ -201,7 +210,11 @@ title newTitle model =
 {-| colours replaces the default colours. Bar charts use just one colour, which will be the head of the list provided.
 
     vChart vs ls
-        |> colours ["steelblue", "#96A65B", "#D9A679", "#593F27", "#A63D33"]    -- pie chart
+        |> colours ["steelblue"]
+        |> toHtml
+
+    pie vs ls
+        |> colours ["steelblue", "#96A65B", "#D9A679", "#593F27", "#A63D33"]
         |> toHtml
 -}
 colours : List String -> Model -> Model
@@ -281,7 +294,7 @@ changeStyles (attr, val) styles =
 
 {-| toHtml is called last, and causes the chart data to be rendered to html.
 
-    hBar vs l
+    hBar vs ls
         |> toHtml
 -}
 
@@ -309,16 +322,16 @@ viewBarHorizontal model =
                 (\{normValue, label} ->
                     div [ style <|
                             [ ( "width", toString normValue ++ "%" )
-                            , ( "color", colour )
+                            , ( "background-color", colour )
                             ] ++ get' "chart-elements"
-                        ] [ text label ]
+                        ]
+                        [ span [style <| get' "legend-labels" ]
+                            [ text label ]
+                        ]
                 )
                 model.items
     in
-    [ div
-        [ style <| get' "chart-container" ]
-        elements
-    ]
+    elements
 
 -- V E R T I C A L
 viewBarVertical : Model -> List Html
@@ -369,9 +382,9 @@ viewPie model =
                 ] []
         go =
             \{normValue} (accOff, (c::cs), accElems) ->
-                ( accOff - round normValue
+                ( accOff - normValue
                 , if List.isEmpty cs then model.colours else cs
-                , elem accOff (round normValue) c :: accElems
+                , elem accOff normValue c :: accElems
                 )
 
         (_, _, elems) = foldl go (0, model.colours, []) model.items
