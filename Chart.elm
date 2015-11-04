@@ -3,7 +3,7 @@ module Chart (hBar, vBar, pie, title, colours, colors, addValueToLabel, updateSt
 
 This module comprises tools to create and modify a model of the data, labels and styling, and then the function `toHtml` renders the model using one of the provided views. Three convenience functions are provided to accelerate modeling, but the defaults can be overriden.
 
-# Basic models
+# Chart constructors
 @docs hBar, vBar, pie
 
 # Customisers
@@ -13,10 +13,10 @@ This module comprises tools to create and modify a model of the data, labels and
 @docs toHtml
 -}
 
-import Html exposing (..)
+import Html exposing (Html, h3, div, span, text)
 import Html.Attributes exposing (style)
 
-import List exposing (..)
+import List exposing (map, map2, length, filter, maximum, foldl, indexedMap)
 import Dict exposing (Dict, update, get)
 
 import Svg exposing (svg, circle)
@@ -185,6 +185,7 @@ chartInit vs ls typ =
     }
 
 -- UPDATE
+
 {-| title adds a title to the model.
 
     -- e.g. build a chart from scratch
@@ -230,7 +231,29 @@ addValueToLabel model =
         items <- map (\item -> { item | label <- item.label ++ " " ++ toString item.value }) model.items
     }
 
--- UPDATE normalise data
+{-| updateStyles replaces styles for a specified part of the chart. Charts have the following div structure
+
+    .container
+        .title
+        .chart-container
+            .chart      (container for the bars or pie segments)
+                .chart-elements
+            .legend     (also for the label container in a vertical bar chart)
+                .legend-labels
+
+    vChart vs ls
+        |> updateStyles "chart" [ ( "color", "black" ) ]
+        |> toHtml
+-}
+updateStyles : String -> List Style -> Model -> Model
+updateStyles selector lst model =
+    { model | styles <-
+        -- update selector (Maybe.map <| \curr -> foldl changeStyles curr lst) model.styles }
+        update selector (Maybe.map <| flip (foldl changeStyles) lst) model.styles }
+
+
+-- NOT exported
+
 normalise : Model -> Model
 normalise model =
     case maximum (map .value model.items) of
@@ -248,40 +271,17 @@ toPercent model =
             items <- map (\item -> { item | normValue <- item.value / tot * 100 }) model.items
         }
 
--- UPDATE Styles
-
 -- removes existing style setting (if any) and inserts new one
 changeStyles : Style -> List Style -> List Style
 changeStyles (attr, val) styles =
     (attr, val) :: (filter (\(t,_) -> t /= attr) styles)
-
-{-| updateStyles replaces styles for a part of the chart. A chart has the following div structure
-
-    .container
-        .title
-        .chart-container
-            .chart      (container for the bars or pie segments)
-                .chart-elements
-            .legend     (also for the label container in a vertical bar chart)
-                .legend-labels
-
-    vChart vs ls "Title"
-        |> updateStyles "chart" [ ( "color", "black" ) ]
-        |> toHtml
--}
-
-updateStyles : String -> List Style -> Model -> Model
-updateStyles selector lst model =
-    { model | styles <-
-        -- update selector (Maybe.map <| \curr -> foldl changeStyles curr lst) model.styles }
-        update selector (Maybe.map <| flip (foldl changeStyles) lst) model.styles }
 
 
 -- VIEW
 
 {-| toHtml is called last, and causes the chart data to be rendered to html.
 
-    hBar vs ls "Title"
+    hBar vs l
         |> toHtml
 -}
 

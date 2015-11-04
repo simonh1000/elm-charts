@@ -1,12 +1,12 @@
 {
-    "version": "0.10.0",
+    "version": "1.0.0",
     "summary": "Elm charting library",
-    "repository": "https://github.com/USER/PROJECT.git",
+    "repository": "https://github.com/simonh1000/elm-charts.git",
     "license": "BSD3",
     "source-directories": [
         "."
     ],
-    "exposed-modules": ["Chart"],
+    "exposed-modules": [ "Chart" ],
     "dependencies": {
         "elm-lang/core": "2.1.0 <= v < 3.0.0",
         "evancz/elm-html": "4.0.1 <= v < 5.0.0",
