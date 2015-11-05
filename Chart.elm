@@ -127,10 +127,10 @@ vBar ds ls =
 pie : List Float -> List String -> Model
 pie ds ls =
     chartInit ds ls Pie
-        -- |> title cTitle
         |> toPercent
         |> updateStyles "chart-container"
             [ ( "justify-content", "center" )
+            , ( "align-items", "center" )
             ]
         |> updateStyles "chart"
             [ ( "height", "200px" )
@@ -146,6 +146,8 @@ pie ds ls =
             [ ( "flex-direction", "column" )
             , ( "justify-content", "center" )
             , ( "padding-left", "15px" )
+            , ("flex-basis", "67%")
+            , ("flex-grow", "2")
             ]
         |> updateStyles "legend-labels"
             [ ( "white-space", "nowrap" )

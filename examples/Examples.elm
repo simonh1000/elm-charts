@@ -7,8 +7,13 @@ import Html.Attributes exposing (style)
 
 import Chart exposing (..)
 
-labels = ["Alpha", "Beta", "Gamma Gamma Gamma", "Delta", "Epsilon", "Omega"]
-values = [5, 9, 5, 2, 6, 10]
+labels =
+    [ "Alpha", "Beta"
+    , "Gamma is a super long legend entry that will never fit in the area at all"
+    , "Delta", "Epsilon", "Lamda"
+    , "Omega", "Phi", "zeta"
+    ]
+values = [5, 9, 5, 2, 6, 1, 1, 1, 12]
 
 type alias Model =
     { labels : List String
@@ -16,8 +21,8 @@ type alias Model =
     }
 
 init =
-    { labels = List.take 5 labels
-    , values = List.take 5 values
+    { labels = List.take 9 labels
+    , values = List.take 9 values
     }
 
 type Action = Dummy
@@ -27,9 +32,7 @@ update action model = model
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-    div [ style []
-            -- [ ("height", "300px")         ]
-        ]
+    div []
         [ hBar model.values model.labels
             |> title "Example horizontal bar chart"
             |> toHtml
@@ -38,6 +41,14 @@ view address model =
             |> toHtml
         , pie model.values model.labels
             |> title "Example pie chart"
+            |> updateStyles "legend"
+                [ ("font-size", "25px")
+                ]
+            |> colours
+                [ "#BF69B1", "#96A65B", "#D9A679", "#593F27", "#A63D33"
+                , "#BF69B1", "#96A65B", "#D9A679", "#593F27", "#A63D33"
+                , "#BF69B1", "#96A65B", "#D9A679", "#593F27", "#A63D33"
+                ]
             |> toHtml
         ]
 
