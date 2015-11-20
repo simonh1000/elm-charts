@@ -207,7 +207,7 @@ chartInit vs ls typ =
 
 title : String -> Model -> Model
 title newTitle model =
-     { model | title <- newTitle }
+     { model | title = newTitle }
 
 {-| colours replaces the default colours. Bar charts use just one colour, which will be the head of the list provided.
 
@@ -225,7 +225,7 @@ colours newColours model =
         [] -> model
         (c :: cs) ->
             case model.chartType of
-                Pie -> { model | colours <- (c :: cs) }
+                Pie -> { model | colours = (c :: cs) }
                 otherwise ->
                     updateStyles "chart" [ ( "background-color", c ) ] model
 
@@ -243,7 +243,7 @@ colors = colours
 addValueToLabel : Model -> Model
 addValueToLabel model =
     { model |
-        items <- map (\item -> { item | label <- item.label ++ " " ++ toString item.value }) model.items
+        items = map (\item -> { item | label = item.label ++ " " ++ toString item.value }) model.items
     }
 
 {-| updateStyles replaces styles for a specified part of the chart. Charts have the following div structure
@@ -262,7 +262,7 @@ addValueToLabel model =
 -}
 updateStyles : String -> List Style -> Model -> Model
 updateStyles selector lst model =
-    { model | styles <-
+    { model | styles =
         -- update selector (Maybe.map <| \curr -> foldl changeStyles curr lst) model.styles }
         update selector (Maybe.map <| flip (foldl changeStyles) lst) model.styles }
 
@@ -275,7 +275,7 @@ normalise model =
         Nothing -> model
         Just maxD ->
             { model |
-                items <- map (\item -> { item | normValue <- item.value / maxD * 100 }) model.items
+                items = map (\item -> { item | normValue = item.value / maxD * 100 }) model.items
             }
 
 toPercent : Model -> Model
@@ -283,7 +283,7 @@ toPercent model =
     let tot = List.sum (map .value model.items)
     in
         { model |
-            items <- map (\item -> { item | normValue <- item.value / tot * 100 }) model.items
+            items = map (\item -> { item | normValue = item.value / tot * 100 }) model.items
         }
 
 -- removes existing style setting (if any) and inserts new one
@@ -382,12 +382,14 @@ viewPie model =
                 , strokeDasharray <| (toString ang) ++ " 100"
                 , style <| get' "chart-elements"
                 ] []
-        go =
-            \{normValue} (accOff, (c::cs), accElems) ->
-                ( accOff - normValue
-                , if List.isEmpty cs then model.colours else cs
-                , elem accOff normValue c :: accElems
-                )
+        go val (accOff, cols, accElems) =
+            case cols of
+                (c::cs) ->
+                    ( accOff - val.normValue
+                    , if List.isEmpty cs then model.colours else cs
+                    , elem accOff val.normValue c :: accElems
+                    )
+                [] -> (accOff, cols, accElems)    -- redundant
 
         (_, _, elems) = foldl go (0, model.colours, []) model.items
 
