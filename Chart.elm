@@ -1,4 +1,7 @@
-module Chart (hBar, vBar, pie, title, colours, colors, addValueToLabel, updateStyles, toHtml) where
+module Chart exposing
+  ( hBar, vBar, pie, lChart
+  , title, colours, colors, addValueToLabel, updateStyles, toHtml)
+
 {-| This module comprises tools to create and modify a model of the data, labels and styling, and then the function `toHtml` renders the model using one of the provided views.
 
 # Chart constructors
@@ -20,36 +23,10 @@ import Dict exposing (Dict, update, get)
 import Svg exposing (svg, circle)
 import Svg.Attributes exposing (viewBox, r, cx, cy, width, height, stroke, strokeDashoffset, strokeDasharray, preserveAspectRatio)
 
+import ChartModel exposing (..)
+import LineChart exposing (..)
+
 -- MODEL
-
-type ChartType =
-      BarHorizontal
-    | BarVertical
-    | Pie
-
-type alias Item =
-    { value : Float
-    , normValue: Float
-    , label : String
-    }
-initItem v l =
-    { value = v
-    , normValue = 0
-    , label = l
-    }
-
-type alias Items = List Item
-initItems = map2 initItem
-
-type alias Style = (String, String)
-
-type alias Model =
-    { chartType : ChartType
-    , items : Items
-    , title : String
-    , colours : List String
-    , styles: Dict String (List Style)
-    }
 
 -- API
 
@@ -90,7 +67,6 @@ hBar ds ls =
 vBar : List Float -> List String -> Model
 vBar ds ls =
     chartInit ds ls BarVertical
-        -- |> title cTitle
         |> normalise
         |> updateStyles "chart-container"
             [ ( "flex-direction", "column" )
@@ -128,9 +104,11 @@ pie : List Float -> List String -> Model
 pie ds ls =
     chartInit ds ls Pie
         |> toPercent
+        -- |> updateStyles "container"
         |> updateStyles "chart-container"
             [ ( "justify-content", "center" )
             , ( "align-items", "center" )
+            , ( "flex-wrap", "wrap" )
             ]
         |> updateStyles "chart"
             [ ( "height", "200px" )
@@ -146,8 +124,9 @@ pie ds ls =
             [ ( "flex-direction", "column" )
             , ( "justify-content", "center" )
             , ( "padding-left", "15px" )
-            , ("flex-basis", "67%")
-            , ("flex-grow", "2")
+            , ( "flex-basis", "67%" )
+            , ( "flex-grow", "2" )
+            , ( "max-width", "100%")
             ]
         |> updateStyles "legend-labels"
             [ ( "white-space", "nowrap" )
@@ -155,45 +134,16 @@ pie ds ls =
             , ( "text-overflow", "ellipsis" )
             ]
 
-{-| chartInit creates the basic data model that can be fine-tuned by subsequent function applications. It takes a list of values, labels and the chart type. This must be called first.
+{-| The line chart is useful for time series, or other data where the values relate to each other in some way.
+
+    lChart vals labels
+        |> toHtml
 -}
-chartInit : List Float -> List String -> ChartType -> Model
-chartInit vs ls typ =
-    { chartType = typ
-    , items = initItems vs ls
-    , title = ""
-    , colours = ["#BF69B1", "#96A65B", "#D9A679", "#593F27", "#A63D33"]
-    , styles =
-        Dict.fromList
-            [ ( "title", [( "text-align", "center" )] )
-            , ( "container"
-              , [ ( "background-color", "#eee" )
-                , ( "padding", "15px" )
-                , ( "border", "2px solid #aaa" )
-                , ( "display", "flex" )
-                , ( "flex-direction", "column" )
-                ]
-              )
-            , ( "chart-container"
-              , [ ( "display", "flex" )
-                , ( "background-color", "#fff" )
-                , ( "padding", "15px" )
-                ]
-              )
-            , ( "chart"
-              , [ ( "display", "flex" ) ]      -- not needed for Pie
-              )
-            , ( "chart-elements", [] )
-            , ( "legend"
-              , [ ( "display", "flex" ) ] )
-            , ( "legend-labels",
-                [ ( "white-space", "nowrap" )
-                , ( "overflow", "hidden" )
-                , ( "text-overflow", "ellipsis" )
-                ]
-              )
-            ]
-    }
+lChart : List Float -> List String -> Model
+lChart ds ls =
+    chartInit ds ls Line
+        |> updateStyles "chart-container"
+            [ ( "justify-content", "center" ) ]
 
 -- UPDATE
 
@@ -204,7 +154,6 @@ chartInit vs ls typ =
         |> title "This will be the title"
         |> toHtml
 -}
-
 title : String -> Model -> Model
 title newTitle model =
      { model | title = newTitle }
@@ -300,7 +249,7 @@ changeStyles (attr, val) styles =
         |> toHtml
 -}
 
-toHtml : Model -> Html
+toHtml : Model -> Html a
 toHtml model =
     let get' sel = Maybe.withDefault [] (get sel model.styles)
     in
@@ -312,9 +261,10 @@ toHtml model =
                 BarHorizontal -> viewBarHorizontal model
                 BarVertical -> viewBarVertical model
                 Pie -> viewPie model
+                Line -> viewLine model
         ]
 
-viewBarHorizontal : Model -> List Html
+viewBarHorizontal : Model -> List (Html a)
 viewBarHorizontal model =
     let
         get' sel = Maybe.withDefault [] (get sel model.styles)
@@ -336,7 +286,7 @@ viewBarHorizontal model =
     elements
 
 -- V E R T I C A L
-viewBarVertical : Model -> List Html
+viewBarVertical : Model -> List (Html a)
 viewBarVertical model =
     let
         get' sel = Maybe.withDefault [] (get sel model.styles)
@@ -369,7 +319,7 @@ viewBarVertical model =
     ]
 
 -- P I E   V I E W
-viewPie : Model -> List Html
+viewPie : Model -> List (Html a)
 viewPie model =
     let
         elem off ang col =
@@ -422,3 +372,6 @@ viewPie model =
             [ style <| get' "legend" ]
             (legend model.items)
         ]
+
+viewLine =
+    LineChart.viewLine

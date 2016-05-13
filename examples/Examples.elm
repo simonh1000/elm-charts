@@ -1,6 +1,6 @@
-module Examples where
+module Examples exposing (..)
 
-import StartApp.Simple exposing (start)
+import Html.App as Html
 
 import Html exposing (..)
 import Html.Attributes exposing (style)
@@ -13,7 +13,7 @@ labels =
     , "Delta", "Epsilon", "Lamda"
     , "Omega", "Phi", "zeta"
     ]
-values = [5, 9, 5, 2, 6, 1, 1, 1, 12]
+values = [5, 9, 5, 2, 6, 1, 1, 1, 120]
 
 type alias Model =
     { labels : List String
@@ -25,13 +25,14 @@ init =
     , values = List.take 9 values
     }
 
-type Action = Dummy
+type Msg = Dummy
 
-update : Action -> Model -> Model
-update action model = model
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+  ( model, Cmd.none )
 
-view : Signal.Address Action -> Model -> Html
-view address model =
+view : Model -> Html Msg
+view model =
     div []
         [ hBar model.values model.labels
             |> title "Example horizontal bar chart"
@@ -50,11 +51,15 @@ view address model =
                 , "#BF69B1", "#96A65B", "#D9A679", "#593F27", "#A63D33"
                 ]
             |> toHtml
+        , lChart model.values model.labels
+            |> title "Example line chart"
+            |> toHtml
         ]
 
 main =
-  start
-    { model = init
+  Html.program
+    { init = (init, Cmd.none)
     , update = update
     , view = view
+    , subscriptions = \_ -> Sub.none
     }
