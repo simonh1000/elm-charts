@@ -5,7 +5,7 @@ module Chart exposing
 {-| This module comprises tools to create and modify a model of the data, labels and styling, and then the function `toHtml` renders the model using one of the provided views.
 
 # Chart constructors
-@docs hBar, vBar, pie
+@docs hBar, vBar, pie, lChart
 
 # Customisers
 @docs title, colours, colors, addValueToLabel, updateStyles
