@@ -7,23 +7,22 @@ import Html.Attributes exposing (style)
 
 import Chart exposing (..)
 
-labels =
-    [ "Alpha", "Beta"
-    , "Gamma is a super long legend entry that will never fit in the area at all"
-    , "Delta", "Epsilon", "Lamda"
-    , "Omega", "Phi", "zeta"
+data =
+    [ (5, "Alpha")
+    , (10, "Beta")
+    , (5, "Gamma is a super long legend entry that will never fit in the area at all")
+    -- , (2, "Delta")
+    -- , (6, "Epsilon")
+    -- , (1, "Lamda")
+    -- , (1, "Omega")
+    -- , (120, "zeta")
+    -- , (1, "Phi")
     ]
-values = [5, 9, 5, 2, 6, 1, 1, 1, 120]
 
 type alias Model =
-    { labels : List String
-    , values : List Float
-    }
+    List (Float, String)
 
-init =
-    { labels = List.take 9 labels
-    , values = List.take 9 values
-    }
+init = data
 
 type Msg = Dummy
 
@@ -34,14 +33,15 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ hBar model.values model.labels
+        [ hBar model
             |> title "Example horizontal bar chart"
             |> toHtml
-        , vBar model.values model.labels
+        , vBar model
             |> title "Example vertical bar chart"
             |> toHtml
-        , pie model.values model.labels
+        , pie model
             |> title "Example pie chart"
+            |> addValueToLabel
             |> updateStyles "legend"
                 [ ("font-size", "25px")
                 ]
@@ -51,7 +51,7 @@ view model =
                 , "#BF69B1", "#96A65B", "#D9A679", "#593F27", "#A63D33"
                 ]
             |> toHtml
-        , lChart model.values model.labels
+        , lChart model
             |> title "Example line chart"
             |> toHtml
         ]

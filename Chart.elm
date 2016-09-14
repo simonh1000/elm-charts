@@ -20,7 +20,7 @@ import Html.Attributes exposing (style)
 import List exposing (map, map2, length, filter, maximum, foldl, indexedMap)
 import Dict exposing (Dict, update, get)
 
-import Svg exposing (svg, circle)
+import Svg exposing (Svg, svg, circle)
 import Svg.Attributes exposing (viewBox, r, cx, cy, width, height, stroke, strokeDashoffset, strokeDasharray, preserveAspectRatio)
 
 import ChartModel exposing (..)
@@ -36,9 +36,10 @@ import LineChart exposing (..)
         |> title "My Chart"
         |> toHtml
 -}
-hBar : List Float -> List String -> Model
-hBar ds ls =
-    chartInit ds ls BarHorizontal
+-- hBar : List Float -> List String -> Model
+hBar : List (Float, String) -> Model
+hBar data =
+    chartInit data BarHorizontal
         -- |> title cTitle
         |> normalise
         |> addValueToLabel
@@ -64,9 +65,9 @@ hBar ds ls =
         |> title "My Chart"
         |> toHtml
 -}
-vBar : List Float -> List String -> Model
-vBar ds ls =
-    chartInit ds ls BarVertical
+vBar : List (Float, String) -> Model
+vBar data =
+    chartInit data BarVertical
         |> normalise
         |> updateStyles "chart-container"
             [ ( "flex-direction", "column" )
@@ -100,10 +101,11 @@ vBar ds ls =
     pie vals labels
         |> toHtml
 -}
-pie : List Float -> List String -> Model
-pie ds ls =
-    chartInit ds ls Pie
+pie : List (Float, String) -> Model
+pie data =
+    chartInit data Pie
         |> toPercent
+        |> Debug.log "%"
         -- |> updateStyles "container"
         |> updateStyles "chart-container"
             [ ( "justify-content", "center" )
@@ -139,9 +141,9 @@ pie ds ls =
     lChart vals labels
         |> toHtml
 -}
-lChart : List Float -> List String -> Model
-lChart ds ls =
-    chartInit ds ls Line
+lChart : List (Float, String) -> Model
+lChart data =
+    chartInit data Line
         |> updateStyles "chart-container"
             [ ( "justify-content", "center" ) ]
 
@@ -229,11 +231,12 @@ normalise model =
 
 toPercent : Model -> Model
 toPercent model =
-    let tot = List.sum (map .value model.items)
-    in
-        { model |
-            items = map (\item -> { item | normValue = item.value / tot * 100 }) model.items
-        }
+    let
+        tot =
+            List.sum (map .value model.items)
+        items =
+            Debug.log "toPercent" <| map (\item -> { item | normValue = item.value / tot * 100 }) model.items
+    in { model | items = items }
 
 -- removes existing style setting (if any) and inserts new one
 changeStyles : Style -> List Style -> List Style
@@ -322,26 +325,30 @@ viewBarVertical model =
 viewPie : Model -> List (Html a)
 viewPie model =
     let
+        -- elem : Float -> Float -> String -> Svg msg
         elem off ang col =
             circle
                 [ r "16"
                 , cx "16"        -- translation x-axis
                 , cy "16"
                 , stroke col
-                , strokeDashoffset (toString off)
-                , strokeDasharray <| (toString ang) ++ " 100"
+                , strokeDashoffset (toString <| Debug.log "accOff" off)
+                -- , strokeDasharray <| (toString (Debug.log "strokeDasharray" ang)) ++ " 100"
+                , strokeDasharray <| (toString <| Debug.log "b" ang) ++ " 100"
                 , style <| get' "chart-elements"
                 ] []
         go val (accOff, cols, accElems) =
             case cols of
                 (c::cs) ->
-                    ( accOff - val.normValue
+                    let ang = val.normValue / 100 * 2 * 3.1415 * 16
+                    in
+                    ( accOff - ang
                     , if List.isEmpty cs then model.colours else cs
-                    , elem accOff val.normValue c :: accElems
+                    , elem accOff ang c :: accElems
                     )
                 [] -> (accOff, cols, accElems)    -- redundant
 
-        (_, _, elems) = foldl go (0, model.colours, []) model.items
+        (_, _, elems) = List.foldr go (0, model.colours, []) model.items
 
         legend items =
             List.map2
@@ -361,7 +368,9 @@ viewPie model =
                 )
                 items model.colours
 
-        get' sel = Maybe.withDefault [] (get sel model.styles)
+        get' sel =
+            get sel model.styles
+            |> Maybe.withDefault []
     in
         [ Svg.svg                       -- chart
             [ style (get' "chart" )

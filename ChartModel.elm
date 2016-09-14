@@ -22,7 +22,11 @@ initItem v l =
     }
 
 type alias Items = List Item
-initItems = List.map2 initItem
+
+initItems : List (Float, String) -> Items
+initItems =
+    List.map (uncurry initItem)
+    -- List.map2 initItem
 
 type alias Style = (String, String)
 
@@ -34,10 +38,10 @@ type alias Model =
     , styles: Dict String (List Style)
     }
 
-chartInit : List Float -> List String -> ChartType -> Model
-chartInit vs ls typ =
+chartInit : List (Float, String) -> ChartType -> Model
+chartInit vs typ =
     { chartType = typ
-    , items = initItems vs ls
+    , items = initItems vs
     , title = ""
     , colours = ["#BF69B1", "#96A65B", "#D9A679", "#593F27", "#A63D33"]
     , styles =
