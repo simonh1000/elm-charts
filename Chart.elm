@@ -32,9 +32,9 @@ import LineChart exposing (..)
 
 {-| The horizontal bar chart results in a set of bars, one above the other, of lengths in proportion to the value. A label with the data value is printed in each bar.
 
-    hBar vals labels
-        |> title "My Chart"
-        |> toHtml
+    hBar data
+    |> title "My Chart"
+    |> toHtml
 -}
 -- hBar : List Float -> List String -> Model
 hBar : List (Float, String) -> Model
@@ -61,9 +61,9 @@ hBar data =
 
 {-| The vertical bar chart results in a set of bars of lengths in proportion to the value. A label is printed below each bar.
 
-    vBar vals labels
-        |> title "My Chart"
-        |> toHtml
+    vBar data
+    |> title "My Chart"
+    |> toHtml
 -}
 vBar : List (Float, String) -> Model
 vBar data =
@@ -98,8 +98,8 @@ vBar data =
 
 {-| The pie chart results in a circle cut into coloured segments of size proportional to the data value.
 
-    pie vals labels
-        |> toHtml
+    pie data
+    |> toHtml
 -}
 pie : List (Float, String) -> Model
 pie data =
@@ -162,13 +162,13 @@ title newTitle model =
 
 {-| colours replaces the default colours. Bar charts use just one colour, which will be the head of the list provided.
 
-    vChart vs ls
-        |> colours ["steelblue"]
-        |> toHtml
+    vChart data
+    |> colours ["steelblue"]
+    |> toHtml
 
-    pie vs ls
-        |> colours ["steelblue", "#96A65B", "#D9A679", "#593F27", "#A63D33"]
-        |> toHtml
+    pie data
+    |> colours ["steelblue", "#96A65B", "#D9A679", "#593F27", "#A63D33"]
+    |> toHtml
 -}
 colours : List String -> Model -> Model
 colours newColours model =
@@ -187,9 +187,9 @@ colors = colours
 
 {-| addValueToLabel adds the data value of each item to the data label. This is applied by default in hBar.
 
-    vBar vs ls "Title"
-        |> addValueToLabel
-        |> toHtml
+    vBar data
+    |> addValueToLabel
+    |> toHtml
 -}
 addValueToLabel : Model -> Model
 addValueToLabel model =
@@ -248,8 +248,8 @@ changeStyles (attr, val) styles =
 
 {-| toHtml is called last, and causes the chart data to be rendered to html.
 
-    hBar vs ls
-        |> toHtml
+    hBar data
+    |> toHtml
 -}
 
 toHtml : Model -> Html a
