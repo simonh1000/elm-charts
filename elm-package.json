@@ -4,7 +4,7 @@
     "repository": "https://github.com/simonh1000/elm-charts.git",
     "license": "BSD3",
     "source-directories": [
-        "."
+        "src"
     ],
     "exposed-modules": [
         "Chart"
