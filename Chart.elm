@@ -348,7 +348,7 @@ viewPie model =
                     )
                 [] -> (accOff, cols, accElems)    -- redundant
 
-        (_, _, elems) = List.foldr go (0, model.colours, []) model.items
+        (_, _, elems) = List.foldl go (0, model.colours, []) model.items
 
         legend items =
             List.map2
