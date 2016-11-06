@@ -1,6 +1,16 @@
-module Chart exposing
-  ( hBar, vBar, pie, lChart
-  , title, colours, colors, addValueToLabel, updateStyles, toHtml)
+module Chart
+    exposing
+        ( hBar
+        , vBar
+        , pie
+        , lChart
+        , title
+        , colours
+        , colors
+        , addValueToLabel
+        , updateStyles
+        , toHtml
+        )
 
 {-| This module comprises tools to create and modify a model of the data, labels and styling, and then the function `toHtml` renders the model using one of the provided views.
 
@@ -16,19 +26,17 @@ module Chart exposing
 
 import Html exposing (Html, h3, div, span, text)
 import Html.Attributes exposing (style)
-
 import List exposing (map, map2, length, filter, maximum, foldl, indexedMap)
 import Dict exposing (Dict, update, get)
-
 import Svg exposing (Svg, svg, circle)
 import Svg.Attributes exposing (viewBox, r, cx, cy, width, height, stroke, strokeDashoffset, strokeDasharray, preserveAspectRatio)
-
 import ChartModel exposing (..)
 import LineChart exposing (..)
 
--- MODEL
 
+-- MODEL
 -- API
+
 
 {-| The horizontal bar chart results in a set of bars, one above the other, of lengths in proportion to the value. A label with the data value is printed in each bar.
 
@@ -36,12 +44,18 @@ import LineChart exposing (..)
     |> title "My Chart"
     |> toHtml
 -}
+
+
+
 -- hBar : List Float -> List String -> Model
-hBar : List (Float, String) -> Model
+
+
+hBar : List ( Float, String ) -> Model
 hBar data =
     chartInit data BarHorizontal
         -- |> title cTitle
-        |> normalise
+        |>
+            normalise
         |> addValueToLabel
         |> updateStyles "chart-container"
             [ ( "display", "block" )
@@ -49,15 +63,16 @@ hBar data =
             , ( "color", "white" )
             ]
         |> updateStyles "chart-elements"
-            [ ( "background-color","steelblue" )
+            [ ( "background-color", "steelblue" )
             , ( "padding", "3px" )
             , ( "margin", "1px" )
             , ( "text-align", "right" )
             ]
         |> updateStyles "legend-labels"
             [ ( "display", "block" )
-            -- , ( "max-width", "100%" )
+              -- , ( "max-width", "100%" )
             ]
+
 
 {-| The vertical bar chart results in a set of bars of lengths in proportion to the value. A label is printed below each bar.
 
@@ -65,7 +80,7 @@ hBar data =
     |> title "My Chart"
     |> toHtml
 -}
-vBar : List (Float, String) -> Model
+vBar : List ( Float, String ) -> Model
 vBar data =
     chartInit data BarVertical
         |> normalise
@@ -79,7 +94,7 @@ vBar data =
             , ( "height", "300px" )
             ]
         |> updateStyles "chart-elements"
-            [ ( "background-color","steelblue" )
+            [ ( "background-color", "steelblue" )
             , ( "padding", "3px" )
             , ( "margin", "1px" )
             , ( "width", "30px" )
@@ -96,22 +111,24 @@ vBar data =
             , ( "text-overflow", "ellipsis" )
             ]
 
+
 {-| The pie chart results in a circle cut into coloured segments of size proportional to the data value.
 
     pie data
     |> toHtml
 -}
-pie : List (Float, String) -> Model
+pie : List ( Float, String ) -> Model
 pie data =
     chartInit data Pie
         |> toPercent
         |> Debug.log "%"
         -- |> updateStyles "container"
-        |> updateStyles "chart-container"
-            [ ( "justify-content", "center" )
-            , ( "align-items", "center" )
-            , ( "flex-wrap", "wrap" )
-            ]
+        |>
+            updateStyles "chart-container"
+                [ ( "justify-content", "center" )
+                , ( "align-items", "center" )
+                , ( "flex-wrap", "wrap" )
+                ]
         |> updateStyles "chart"
             [ ( "height", "200px" )
             , ( "transform", "rotate(-90deg)" )
@@ -128,7 +145,7 @@ pie data =
             , ( "padding-left", "15px" )
             , ( "flex-basis", "67%" )
             , ( "flex-grow", "2" )
-            , ( "max-width", "100%")
+            , ( "max-width", "100%" )
             ]
         |> updateStyles "legend-labels"
             [ ( "white-space", "nowrap" )
@@ -136,18 +153,22 @@ pie data =
             , ( "text-overflow", "ellipsis" )
             ]
 
+
 {-| The line chart is useful for time series, or other data where the values relate to each other in some way.
 
     lChart vals labels
         |> toHtml
 -}
-lChart : List (Float, String) -> Model
+lChart : List ( Float, String ) -> Model
 lChart data =
     chartInit data Line
         |> updateStyles "chart-container"
             [ ( "justify-content", "center" ) ]
 
+
+
 -- UPDATE
+
 
 {-| title adds a title to the model.
 
@@ -158,7 +179,8 @@ lChart data =
 -}
 title : String -> Model -> Model
 title newTitle model =
-     { model | title = newTitle }
+    { model | title = newTitle }
+
 
 {-| colours replaces the default colours. Bar charts use just one colour, which will be the head of the list provided.
 
@@ -173,17 +195,24 @@ title newTitle model =
 colours : List String -> Model -> Model
 colours newColours model =
     case newColours of
-        [] -> model
-        (c :: cs) ->
+        [] ->
+            model
+
+        c :: cs ->
             case model.chartType of
-                Pie -> { model | colours = (c :: cs) }
+                Pie ->
+                    { model | colours = (c :: cs) }
+
                 otherwise ->
                     updateStyles "chart" [ ( "background-color", c ) ] model
+
 
 {-| colors supports alternative spelling of colours
 -}
 colors : List String -> Model -> Model
-colors = colours
+colors =
+    colours
+
 
 {-| addValueToLabel adds the data value of each item to the data label. This is applied by default in hBar.
 
@@ -193,9 +222,10 @@ colors = colours
 -}
 addValueToLabel : Model -> Model
 addValueToLabel model =
-    { model |
-        items = map (\item -> { item | label = item.label ++ " " ++ toString item.value }) model.items
+    { model
+        | items = map (\item -> { item | label = item.label ++ " " ++ toString item.value }) model.items
     }
+
 
 {-| updateStyles replaces styles for a specified part of the chart. Charts have the following div structure
 
@@ -213,115 +243,164 @@ addValueToLabel model =
 -}
 updateStyles : String -> List Style -> Model -> Model
 updateStyles selector lst model =
-    { model | styles =
-        -- update selector (Maybe.map <| \curr -> foldl changeStyles curr lst) model.styles }
-        update selector (Maybe.map <| flip (foldl changeStyles) lst) model.styles }
+    { model
+        | styles =
+            -- update selector (Maybe.map <| \curr -> foldl changeStyles curr lst) model.styles }
+            update selector (Maybe.map <| flip (foldl changeStyles) lst) model.styles
+    }
+
 
 
 -- NOT exported
 
+
 normalise : Model -> Model
 normalise model =
     case maximum (map .value model.items) of
-        Nothing -> model
+        Nothing ->
+            model
+
         Just maxD ->
-            { model |
-                items = map (\item -> { item | normValue = item.value / maxD * 100 }) model.items
+            { model
+                | items = map (\item -> { item | normValue = item.value / maxD * 100 }) model.items
             }
+
 
 toPercent : Model -> Model
 toPercent model =
     let
         tot =
             List.sum (map .value model.items)
+
         items =
             Debug.log "toPercent" <| map (\item -> { item | normValue = item.value / tot * 100 }) model.items
-    in { model | items = items }
+    in
+        { model | items = items }
+
+
 
 -- removes existing style setting (if any) and inserts new one
+
+
 changeStyles : Style -> List Style -> List Style
-changeStyles (attr, val) styles =
-    (attr, val) :: (filter (\(t,_) -> t /= attr) styles)
+changeStyles ( attr, val ) styles =
+    ( attr, val ) :: (filter (\( t, _ ) -> t /= attr) styles)
+
 
 
 -- VIEW
+
 
 {-| toHtml is called last, and causes the chart data to be rendered to html.
 
     hBar data
     |> toHtml
 -}
-
 toHtml : Model -> Html a
 toHtml model =
-    let get' sel = Maybe.withDefault [] (get sel model.styles)
+    let
+        get' sel =
+            Maybe.withDefault [] (get sel model.styles)
     in
-    div [ style <| get' "container" ]
-        [ h3 [ style <| get' "title" ] [ text model.title ]
-        , div [ style <| get' "chart-container" ] <|
-            -- chart-elements, axis, legend-labels,...
-            case model.chartType of
-                BarHorizontal -> viewBarHorizontal model
-                BarVertical -> viewBarVertical model
-                Pie -> viewPie model
-                Line -> viewLine model
-        ]
+        div [ style <| get' "container" ]
+            [ h3 [ style <| get' "title" ] [ text model.title ]
+            , div [ style <| get' "chart-container" ] <|
+                -- chart-elements, axis, legend-labels,...
+                case model.chartType of
+                    BarHorizontal ->
+                        viewBarHorizontal model
+
+                    BarVertical ->
+                        viewBarVertical model
+
+                    Pie ->
+                        viewPie model
+
+                    Line ->
+                        viewLine model
+            ]
+
 
 viewBarHorizontal : Model -> List (Html a)
 viewBarHorizontal model =
     let
-        get' sel = Maybe.withDefault [] (get sel model.styles)
-        colour = Maybe.withDefault "steelblue" (List.head model.colours)
+        get' sel =
+            Maybe.withDefault [] (get sel model.styles)
+
+        colour =
+            Maybe.withDefault "steelblue" (List.head model.colours)
+
         elements =
             map
-                (\{normValue, label} ->
-                    div [ style <|
+                (\{ normValue, label } ->
+                    div
+                        [ style <|
                             [ ( "width", toString normValue ++ "%" )
                             , ( "background-color", colour )
-                            ] ++ get' "chart-elements"
+                            ]
+                                ++ get' "chart-elements"
                         ]
-                        [ span [style <| get' "legend-labels" ]
+                        [ span [ style <| get' "legend-labels" ]
                             [ text label ]
                         ]
                 )
                 model.items
     in
-    elements
+        elements
+
+
 
 -- V E R T I C A L
+
+
 viewBarVertical : Model -> List (Html a)
 viewBarVertical model =
     let
-        get' sel = Maybe.withDefault [] (get sel model.styles)
+        get' sel =
+            Maybe.withDefault [] (get sel model.styles)
 
         elements =
             map
-                (\{normValue} -> div [ style <| ( "height", toString normValue ++ "%" ) :: get' "chart-elements" ] [  ] )
+                (\{ normValue } -> div [ style <| ( "height", toString normValue ++ "%" ) :: get' "chart-elements" ] [])
                 model.items
 
         rotateLabel : Int -> Int -> Style
         rotateLabel lenData idx =
             let
-                labelWidth = 60
+                labelWidth =
+                    60
+
                 offset =
                     case lenData % 2 == 0 of
-                        True ->  (lenData // 2 - idx - 1) * labelWidth + 20        -- 6 chart-elements, 2&3 are the middle
-                        False -> (lenData // 2 - idx) * labelWidth - 10      -- 5 chart-elements, 2 is the middle
-            in ( "transform", "translateX( "++(toString offset)++"px) translateY(30px) rotate(-45deg)" )
+                        True ->
+                            (lenData // 2 - idx - 1) * labelWidth + 20
+
+                        -- 6 chart-elements, 2&3 are the middle
+                        False ->
+                            (lenData // 2 - idx) * labelWidth - 10
+
+                -- 5 chart-elements, 2 is the middle
+            in
+                ( "transform", "translateX( " ++ (toString offset) ++ "px) translateY(30px) rotate(-45deg)" )
 
         labels =
             indexedMap
-                ( \idx item ->
+                (\idx item ->
                     div
                         [ style <| (rotateLabel (length model.items) idx) :: get' "legend-labels" ]
                         [ text (.label item) ]
-                ) model.items
+                )
+                model.items
     in
-    [ div [ style <| get' "chart" ] elements
-    , div [ style <| get' "legend" ] labels
-    ]
+        [ div [ style <| get' "chart" ] elements
+        , div [ style <| get' "legend" ] labels
+        ]
+
+
 
 -- P I E   V I E W
+
+
 viewPie : Model -> List (Html a)
 viewPie model =
     let
@@ -329,58 +408,76 @@ viewPie model =
         elem off ang col =
             circle
                 [ r "16"
-                , cx "16"        -- translation x-axis
+                , cx "16"
+                  -- translation x-axis
                 , cy "16"
                 , stroke col
                 , strokeDashoffset (toString <| Debug.log "accOff" off)
-                -- , strokeDasharray <| (toString (Debug.log "strokeDasharray" ang)) ++ " 100"
+                  -- , strokeDasharray <| (toString (Debug.log "strokeDasharray" ang)) ++ " 100"
                 , strokeDasharray <| (toString <| Debug.log "b" ang) ++ " 100"
                 , style <| get' "chart-elements"
-                ] []
-        go val (accOff, cols, accElems) =
-            case cols of
-                (c::cs) ->
-                    let ang = val.normValue / 100 * 2 * 3.1415 * 16
-                    in
-                    ( accOff - ang
-                    , if List.isEmpty cs then model.colours else cs
-                    , elem accOff ang c :: accElems
-                    )
-                [] -> (accOff, cols, accElems)    -- redundant
+                ]
+                []
 
-        (_, _, elems) = List.foldl go (0, model.colours, []) model.items
+        go val ( accOff, cols, accElems ) =
+            case cols of
+                c :: cs ->
+                    let
+                        ang =
+                            val.normValue / 100 * 2 * 3.1415 * 16
+                    in
+                        ( accOff - ang
+                        , if List.isEmpty cs then
+                            model.colours
+                          else
+                            cs
+                        , elem accOff ang c :: accElems
+                        )
+
+                [] ->
+                    ( accOff, cols, accElems )
+
+        -- redundant
+        ( _, _, elems ) =
+            List.foldr go ( 0, model.colours, [] ) model.items
 
         legend items =
             List.map2
-                ( \{label} col ->
+                (\{ label } col ->
                     div [ style <| get' "legend-labels" ]
                         [ span
-                            [style
-                                [ ( "background-color", col)
+                            [ style
+                                [ ( "background-color", col )
                                 , ( "display", "inline-block" )
                                 , ( "height", "20px" )
                                 , ( "width", "20px" )
                                 , ( "margin-right", "5px" )
                                 ]
-                            ] [ text " " ]
-                         , Html.text label
-                         ]
+                            ]
+                            [ text " " ]
+                        , Html.text label
+                        ]
                 )
-                items model.colours
+                items
+                model.colours
 
         get' sel =
             get sel model.styles
-            |> Maybe.withDefault []
+                |> Maybe.withDefault []
     in
-        [ Svg.svg                       -- chart
-            [ style (get' "chart" )
+        [ Svg.svg
+            -- chart
+            [ style (get' "chart")
             , viewBox "0 0 32 32"
             , preserveAspectRatio "xMidYMid slice"
-            ] elems
-        , div                           -- legend
+            ]
+            elems
+        , div
+            -- legend
             [ style <| get' "legend" ]
             (legend model.items)
         ]
+
 
 viewLine =
     LineChart.viewLine
