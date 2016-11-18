@@ -1,6 +1,5 @@
 module Examples exposing (..)
 
-import Html.App as Html
 import Html exposing (..)
 import Html.Attributes exposing (style)
 import Chart exposing (..)

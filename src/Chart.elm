@@ -34,7 +34,6 @@ import ChartModel exposing (..)
 import LineChart exposing (..)
 
 
--- MODEL
 -- API
 
 
@@ -44,18 +43,10 @@ import LineChart exposing (..)
     |> title "My Chart"
     |> toHtml
 -}
-
-
-
--- hBar : List Float -> List String -> Model
-
-
 hBar : List ( Float, String ) -> Model
 hBar data =
     chartInit data BarHorizontal
-        -- |> title cTitle
-        |>
-            normalise
+        |> normalise
         |> addValueToLabel
         |> updateStyles "chart-container"
             [ ( "display", "block" )
@@ -299,12 +290,12 @@ changeStyles ( attr, val ) styles =
 toHtml : Model -> Html a
 toHtml model =
     let
-        get' sel =
+        get_ sel =
             Maybe.withDefault [] (get sel model.styles)
     in
-        div [ style <| get' "container" ]
-            [ h3 [ style <| get' "title" ] [ text model.title ]
-            , div [ style <| get' "chart-container" ] <|
+        div [ style <| get_ "container" ]
+            [ h3 [ style <| get_ "title" ] [ text model.title ]
+            , div [ style <| get_ "chart-container" ] <|
                 -- chart-elements, axis, legend-labels,...
                 case model.chartType of
                     BarHorizontal ->
@@ -324,7 +315,7 @@ toHtml model =
 viewBarHorizontal : Model -> List (Html a)
 viewBarHorizontal model =
     let
-        get' sel =
+        get_ sel =
             Maybe.withDefault [] (get sel model.styles)
 
         colour =
@@ -338,9 +329,9 @@ viewBarHorizontal model =
                             [ ( "width", toString normValue ++ "%" )
                             , ( "background-color", colour )
                             ]
-                                ++ get' "chart-elements"
+                                ++ get_ "chart-elements"
                         ]
-                        [ span [ style <| get' "legend-labels" ]
+                        [ span [ style <| get_ "legend-labels" ]
                             [ text label ]
                         ]
                 )
@@ -356,12 +347,12 @@ viewBarHorizontal model =
 viewBarVertical : Model -> List (Html a)
 viewBarVertical model =
     let
-        get' sel =
+        get_ sel =
             Maybe.withDefault [] (get sel model.styles)
 
         elements =
             map
-                (\{ normValue } -> div [ style <| ( "height", toString normValue ++ "%" ) :: get' "chart-elements" ] [])
+                (\{ normValue } -> div [ style <| ( "height", toString normValue ++ "%" ) :: get_ "chart-elements" ] [])
                 model.items
 
         rotateLabel : Int -> Int -> Style
@@ -387,13 +378,13 @@ viewBarVertical model =
             indexedMap
                 (\idx item ->
                     div
-                        [ style <| (rotateLabel (length model.items) idx) :: get' "legend-labels" ]
+                        [ style <| (rotateLabel (length model.items) idx) :: get_ "legend-labels" ]
                         [ text (.label item) ]
                 )
                 model.items
     in
-        [ div [ style <| get' "chart" ] elements
-        , div [ style <| get' "legend" ] labels
+        [ div [ style <| get_ "chart" ] elements
+        , div [ style <| get_ "legend" ] labels
         ]
 
 
@@ -415,7 +406,7 @@ viewPie model =
                 , strokeDashoffset (toString <| Debug.log "accOff" off)
                   -- , strokeDasharray <| (toString (Debug.log "strokeDasharray" ang)) ++ " 100"
                 , strokeDasharray <| (toString <| Debug.log "b" ang) ++ " 100"
-                , style <| get' "chart-elements"
+                , style <| get_ "chart-elements"
                 ]
                 []
 
@@ -444,7 +435,7 @@ viewPie model =
         legend items =
             List.map2
                 (\{ label } col ->
-                    div [ style <| get' "legend-labels" ]
+                    div [ style <| get_ "legend-labels" ]
                         [ span
                             [ style
                                 [ ( "background-color", col )
@@ -461,20 +452,20 @@ viewPie model =
                 items
                 model.colours
 
-        get' sel =
+        get_ sel =
             get sel model.styles
                 |> Maybe.withDefault []
     in
         [ Svg.svg
             -- chart
-            [ style (get' "chart")
+            [ style (get_ "chart")
             , viewBox "0 0 32 32"
             , preserveAspectRatio "xMidYMid slice"
             ]
             elems
         , div
             -- legend
-            [ style <| get' "legend" ]
+            [ style <| get_ "legend" ]
             (legend model.items)
         ]
 
