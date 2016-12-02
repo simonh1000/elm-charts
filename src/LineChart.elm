@@ -7,7 +7,7 @@ import String
 import Text
 import Html exposing (Html)
 import List exposing (map, length, head)
-import ChartModel exposing (..)
+import Model exposing (..)
 
 
 -- http://stackoverflow.com/questions/361681/algorithm-for-nice-grid-line-intervals-on-a-graph

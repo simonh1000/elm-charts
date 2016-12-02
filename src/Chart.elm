@@ -30,7 +30,7 @@ import List exposing (map, map2, length, filter, maximum, foldl, indexedMap)
 import Dict exposing (Dict, update, get)
 import Svg exposing (Svg, svg, circle)
 import Svg.Attributes exposing (viewBox, r, cx, cy, width, height, stroke, strokeDashoffset, strokeDasharray, preserveAspectRatio)
-import ChartModel exposing (..)
+import Model exposing (..)
 import LineChart exposing (..)
 
 
@@ -430,7 +430,7 @@ viewPie model =
 
         -- redundant
         ( _, _, elems ) =
-            List.foldr go ( 0, model.colours, [] ) model.items
+            List.foldl go ( 0, model.colours, [] ) model.items
 
         legend items =
             List.map2
