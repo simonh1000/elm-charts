@@ -10,11 +10,28 @@ type ChartType
     | Line
 
 
+type alias Model =
+    { chartType : ChartType
+    , items : List Item
+    , width : Int
+    , height : Int
+    , title : String
+    , colours :
+        List String
+        -- class [(style, value)]
+    , styles : Dict String (List Style)
+    }
+
+
 type alias Item =
     { value : Float
     , normValue : Float
     , label : String
     }
+
+
+type alias Style =
+    ( String, String )
 
 
 initItem : Float -> String -> Item
@@ -25,36 +42,17 @@ initItem v l =
     }
 
 
-type alias Items =
-    List Item
-
-
-initItems : List ( Float, String ) -> Items
+initItems : List ( Float, String ) -> List Item
 initItems =
     List.map (uncurry initItem)
-
-
-
--- List.map2 initItem
-
-
-type alias Style =
-    ( String, String )
-
-
-type alias Model =
-    { chartType : ChartType
-    , items : Items
-    , title : String
-    , colours : List String
-    , styles : Dict String (List Style)
-    }
 
 
 chartInit : List ( Float, String ) -> ChartType -> Model
 chartInit vs typ =
     { chartType = typ
     , items = initItems vs
+    , width = 400
+    , height = 300
     , title = ""
     , colours = [ "#BF69B1", "#96A65B", "#D9A679", "#593F27", "#A63D33" ]
     , styles =

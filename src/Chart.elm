@@ -9,6 +9,7 @@ module Chart
         , colors
         , addValueToLabel
         , updateStyles
+        , dimensions
         , toHtml
         )
 
@@ -18,7 +19,7 @@ module Chart
 @docs hBar, vBar, pie, lChart
 
 # Customisers
-@docs title, colours, colors, addValueToLabel, updateStyles
+@docs title, colours, colors, addValueToLabel, updateStyles, dimensions
 
 # Rendering
 @docs toHtml
@@ -61,7 +62,6 @@ hBar data =
             ]
         |> updateStyles "legend-labels"
             [ ( "display", "block" )
-              -- , ( "max-width", "100%" )
             ]
 
 
@@ -112,14 +112,11 @@ pie : List ( Float, String ) -> Model
 pie data =
     chartInit data Pie
         |> toPercent
-        |> Debug.log "%"
-        -- |> updateStyles "container"
-        |>
-            updateStyles "chart-container"
-                [ ( "justify-content", "center" )
-                , ( "align-items", "center" )
-                , ( "flex-wrap", "wrap" )
-                ]
+        |> updateStyles "chart-container"
+            [ ( "justify-content", "center" )
+            , ( "align-items", "center" )
+            , ( "flex-wrap", "wrap" )
+            ]
         |> updateStyles "chart"
             [ ( "height", "200px" )
             , ( "transform", "rotate(-90deg)" )
@@ -241,6 +238,17 @@ updateStyles selector lst model =
     }
 
 
+{-| sets the width and height of a chart
+
+    vChart vs ls
+        |> dimensions 400 300
+        |> toHtml
+-}
+dimensions : Int -> Int -> Model -> Model
+dimensions width height model =
+    { model | width = width, height = height }
+
+
 
 -- NOT exported
 
@@ -264,7 +272,7 @@ toPercent model =
             List.sum (map .value model.items)
 
         items =
-            Debug.log "toPercent" <| map (\item -> { item | normValue = item.value / tot * 100 }) model.items
+            map (\item -> { item | normValue = item.value / tot * 100 }) model.items
     in
         { model | items = items }
 
@@ -403,9 +411,8 @@ viewPie model =
                   -- translation x-axis
                 , cy "16"
                 , stroke col
-                , strokeDashoffset (toString <| Debug.log "accOff" off)
-                  -- , strokeDasharray <| (toString (Debug.log "strokeDasharray" ang)) ++ " 100"
-                , strokeDasharray <| (toString <| Debug.log "b" ang) ++ " 100"
+                , strokeDashoffset (toString off)
+                , strokeDasharray <| (toString ang) ++ " 100"
                 , style <| get_ "chart-elements"
                 ]
                 []
@@ -415,7 +422,7 @@ viewPie model =
                 c :: cs ->
                     let
                         ang =
-                            val.normValue / 100 * 2 * 3.1415 * 16
+                            val.normValue / 100 * 2 * pi * 16
                     in
                         ( accOff - ang
                         , if List.isEmpty cs then

@@ -38,17 +38,11 @@ getTicks largest mostticks =
 viewLine : Model -> List (Html a)
 viewLine model =
     let
-        width =
-            400
-
-        height =
-            300
-
         chartW =
-            width / 2 - 30
+            (toFloat model.width) / 2 - 30
 
         chartH =
-            height / 2 - 40
+            (toFloat model.height) / 2 - 40
 
         noTicks =
             8
@@ -97,8 +91,8 @@ viewLine model =
                 )
     in
         [ Element.toHtml <|
-            collage 400 300 <|
-                [ rect 400 300
+            collage model.width model.height <|
+                [ rect (toFloat model.width) (toFloat model.height)
                     |> filled white
                 , traced
                     -- line itself
@@ -136,15 +130,6 @@ makeXTick tVal =
         , String.left 4 tVal
             |> Text.fromString
             |> C.text
-            -- |> Text.style [ ("width", "20px"), ("overflow-x", "hidden") ]
-            |>
-                C.rotate (degrees 45)
+            |> C.rotate (degrees 45)
             |> C.move ( 0, -20 )
         ]
-
-
-
--- hexString : String -> Color
--- hexString s =
---     String.dropLeft 1 s
---         |> String.slice Int Int String
