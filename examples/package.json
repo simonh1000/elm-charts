@@ -1,0 +1,42 @@
+{
+  "author": "Simon Hampton",
+  "name": "elm-fullstack-starter",
+  "version": "2.3.0",
+  "description": "Elm fullstack starter",
+  "license": "ISC",
+  "repository": "https://github.com/simonh1000/elm-fullstack-starter",
+  "scripts": {
+    "start": "gulp",
+    "production": "gulp build --production",
+    "compile": "gulp compile",
+    "serverless": "gulp serverless",
+    "postinstall": "elm-package install -y"
+  },
+  "engines": {
+    "node": ">=4.x"
+  },
+  "dependencies": {
+    "body-parser": "~1.15.2",
+    "cookie-parser": "~1.4.3",
+    "debug": "^2.2.0",
+    "express": "~4.14.0",
+    "morgan": "~1.7.0",
+    "serve-favicon": "~2.3.0"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.17.5",
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^2.0.13",
+    "gulp-concat": "^2.6.0",
+    "gulp-elm": "^0.6.0",
+    "gulp-if": "^2.0.1",
+    "gulp-nodemon": "^2.2.1",
+    "gulp-pug": "^3.1.0",
+    "gulp-sass": "^2.3.2",
+    "gulp-sourcemaps": "^2.2.0",
+    "gulp-uglify": "^2.0.0",
+    "pug": "^2.0.0-beta6",
+    "run-sequence": "^1.2.2"
+  }
+}

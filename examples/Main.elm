@@ -1,8 +1,8 @@
-module Examples exposing (..)
+module Main exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (style)
-import Chart exposing (..)
+import Html.Attributes exposing (..)
+import Chart as C exposing (..)
 
 
 data =
@@ -37,15 +37,15 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ id "main" ]
         [ hBar model
-            |> title "Example horizontal bar chart"
+            |> C.title "Example horizontal bar chart"
             |> toHtml
         , vBar model
-            |> title "Example vertical bar chart"
+            |> C.title "Example vertical bar chart"
             |> toHtml
         , pie model
-            |> title "Example pie chart"
+            |> C.title "Example pie chart"
             |> addValueToLabel
             |> updateStyles "legend"
                 [ ( "font-size", "25px" )
@@ -69,7 +69,8 @@ view model =
                 ]
             |> toHtml
         , lChart model
-            |> title "Example line chart"
+            |> C.title "Example line chart"
+            |> dimensions 500 300
             |> toHtml
         ]
 
